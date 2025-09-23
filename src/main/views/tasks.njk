@@ -1,0 +1,16 @@
+{% from "macros/task.njk" import task %}
+{% extends "template.njk" %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Tasks</h1>
+  <a href="/tasks/create" class="govuk-button">Create New Task</a>
+  {% if tasks and tasks.length %}
+    <section class="task-list">
+      {% for item in tasks %}
+        {{ task(item) }}
+      {% endfor %}
+    </section>
+  {% else %}
+    <p>No tasks found.</p>
+  {% endif %}
+{% endblock %}

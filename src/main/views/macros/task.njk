@@ -1,0 +1,39 @@
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "macros/date-time.njk" import formatDateTime %}
+
+{% macro task(task) %}
+  {% set tagClass = "govuk-tag--green" %}
+  {% if task.status == "IN_PROGRESS" %}
+    {% set tagClass = "govuk-tag--light-blue" %}
+  {% elif task.status == "COMPLETED" %}
+    {% set tagClass = "govuk-tag--grey" %}
+  {% endif %}
+  <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-top-9 govuk-!-margin-bottom-6" style="border-top: 2px solid #505a5f;">
+  <div class="govuk-body govuk-!-display-block govuk-!-margin-top-3">
+    <div class="govuk-task-list__status govuk-!-margin-bottom-3">
+      <strong class="govuk-tag {{ tagClass }}">
+        {{ task.status }}
+      </strong>
+    </div>
+    {{ govukTable({
+      caption: task.title,
+      captionClasses: "govuk-table__caption--m",
+      firstCellIsHeader: true,
+      head: [],
+      rows: [
+        [
+          { text: "Description" },
+          { text: task.description }
+        ],
+        [
+          { text: "Due" },
+          { text: formatDateTime(task.dueDateTime) }
+        ]
+      ]
+    }) }}
+    <div class="govuk-body govuk-!-display-inline govuk-!-justify-content-flex-end">
+      <a href="/tasks/{{ task.id }}/edit" class="govuk-link govuk-!-margin-right-4">Edit</a>
+      <a href="/tasks/{{ task.id }}/delete" class="govuk-link">Delete</a>
+    </div>
+  </div>
+{% endmacro %}

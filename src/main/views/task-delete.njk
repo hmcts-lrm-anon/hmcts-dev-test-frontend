@@ -1,0 +1,24 @@
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "macros/task.njk" import task as taskMacro %}
+
+{% extends "template.njk" %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Delete Task</h1>
+  {{ taskMacro(task) }}
+  <hr class="govuk-section-break govuk-section-break--visible govuk-!-margin-bottom-4">
+  {{ govukWarningText({
+    text: "Deleting this task is permanent and cannot be undone. Are you sure you want to continue?",
+    iconFallbackText: "Warning"
+  }) }}
+  <form method="post" action="/tasks/{{ task.id }}/delete">
+    {{ govukButton({
+      text: "Yes, delete task",
+      classes: "govuk-button--warning"
+    }) }}
+  </form>
+  <p class="govuk-body">
+    <a href="/tasks" class="govuk-link">Cancel and go back</a>
+  </p>
+{% endblock %}

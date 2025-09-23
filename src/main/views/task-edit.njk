@@ -1,0 +1,163 @@
+{% extends "template.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+  {% set pageTitle = "Edit Task" %}
+  {% set formAction = '/tasks/' ~ task.id ~ '/edit' %}
+  {% set buttonText = "Update Task" %}
+
+  <h1 class="govuk-heading-xl">{{ pageTitle }}</h1>
+
+  {% set errorList = [] %}
+
+  {% if errors and errors.length %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: errors
+    }) }}
+  {% endif %}
+
+  <form method="post" action="{{ formAction }}" id="taskEditForm">
+  <input type="hidden" id="dueDateTime" name="dueDateTime" value="{{ task.dueDateTime or '' }}">
+    {{ govukInput({
+      id: "title",
+      name: "title",
+      label: { 
+        text: "Task title",
+        classes: "govuk-label--s"
+      },
+      hint: { text: "Enter a short, descriptive title" },
+      classes: "govuk-!-width-two-thirds",
+      value: task.title or ""
+    }) }}
+
+    {{ govukTextarea({
+      id: "description",
+      name: "description",
+      label: { 
+        text: "Task description",
+        classes: "govuk-label--s"
+      },
+      hint: { text: "Provide more detail about this task" },
+      value: task.description or ""
+    }) }}
+
+    {{ govukSelect({
+      id: "status",
+      name: "status",
+      label: { 
+        text: "Status",
+        classes: "govuk-label--s"
+      },
+      items: [
+        { value: "OPEN", text: "Open", selected: task.status == "OPEN" },
+        { value: "IN_PROGRESS", text: "In Progress", selected: task.status == "IN_PROGRESS" },
+        { value: "COMPLETED", text: "Completed", selected: task.status == "COMPLETED" }
+      ]
+    }) }}
+
+    {% from "macros/date-time.njk" import formatDateTime %}
+    {% set day = "" %}
+    {% set month = "" %}
+    {% set year = "" %}
+    {% set hour = "" %}
+    {% set minute = "" %}
+    {% if task.dueDateTime and task.dueDateTime.indexOf('T') != -1 %}
+      {% set parts = task.dueDateTime.split('T') %}
+      {% set dateParts = parts[0].split('-') %}
+      {% set timeParts = parts[1].split(':') %}
+      {% set year = dateParts[0] %}
+      {% set month = dateParts[1] %}
+      {% set day = dateParts[2] %}
+      {% set hour = timeParts[0] %}
+      {% set minute = timeParts[1] %}
+    {% endif %}
+    {% from "govuk/components/table/macro.njk" import govukTable %}
+  <div class="govuk-label govuk-label--s govuk-!-margin-bottom-1">Due</div>
+    {{ govukTable({
+      head: [],
+      rows: [
+        [
+          { text: formatDateTime(task.dueDateTime) }
+        ]
+      ]
+    }) }}
+    <div class="govuk-form-group">
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px;">
+        <input class="govuk-input govuk-input--width-2" id="dueDay" name="dueDay" type="text" pattern="[0-9]{1,2}" inputmode="numeric" value="{{ day }}" placeholder="DD">
+        <input class="govuk-input govuk-input--width-2" id="dueMonth" name="dueMonth" type="text" pattern="[0-9]{1,2}" inputmode="numeric" value="{{ month }}" placeholder="MM">
+        <input class="govuk-input govuk-input--width-4" id="dueYear" name="dueYear" type="text" pattern="[0-9]{4}" inputmode="numeric" value="{{ year }}" placeholder="YYYY">
+        <span style="margin: 0 8px;">at</span>
+        <input class="govuk-input govuk-input--width-2" id="dueHour" name="dueHour" type="text" pattern="[0-9]{1,2}" inputmode="numeric" value="{{ hour }}" placeholder="HH">
+        <input class="govuk-input govuk-input--width-2" id="dueMinute" name="dueMinute" type="text" pattern="[0-9]{1,2}" inputmode="numeric" value="{{ minute }}" placeholder="MM">
+      </div>
+    </div>
+    <div id="editFormError" class="govuk-error-message" style="display:none; margin-bottom: 16px;"></div>
+
+    {{ govukButton({ text: buttonText }) }}
+  </form>
+  <p class="govuk-body">
+    <a href="/tasks" class="govuk-link">Cancel and go back</a>
+  </p>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('taskEditForm');
+    var formError = document.getElementById('editFormError');
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var title = document.getElementById('title').value.trim();
+      var day = document.getElementById('dueDay').value.padStart(2, '0');
+      var month = document.getElementById('dueMonth').value.padStart(2, '0');
+      var year = document.getElementById('dueYear').value;
+      var hour = document.getElementById('dueHour').value.padStart(2, '0');
+      var minute = document.getElementById('dueMinute').value.padStart(2, '0');
+
+      // Validation
+      var errorMsg = '';
+      if (!title) {
+        errorMsg = 'Enter a task title.';
+      } else if (!day || !month || !year || !hour || !minute) {
+        errorMsg = 'Enter a complete due date and time.';
+      } else if (!/^\d{2}$/.test(day) || !/^\d{2}$/.test(month) || !/^\d{4}$/.test(year) || !/^\d{2}$/.test(hour) || !/^\d{2}$/.test(minute)) {
+        errorMsg = 'Date and time must be valid numbers.';
+      } else {
+        // Check for real calendar date
+        var dayNum = parseInt(day, 10);
+        var monthNum = parseInt(month, 10);
+        var yearNum = parseInt(year, 10);
+        var hourNum = parseInt(hour, 10);
+        var minuteNum = parseInt(minute, 10);
+        var validDate = true;
+        var dateObj = new Date(yearNum, monthNum - 1, dayNum, hourNum, minuteNum, 0);
+        if (dateObj.getFullYear() !== yearNum || dateObj.getMonth() !== monthNum - 1 || dateObj.getDate() !== dayNum) {
+          validDate = false;
+        }
+        if (!validDate) {
+          errorMsg = 'Enter a real calendar date.';
+        } else {
+          var now = new Date();
+          if (dateObj < now) {
+            errorMsg = 'Due date and time must be in the future.';
+          }
+        }
+      }
+
+      if (errorMsg) {
+        formError.textContent = errorMsg;
+        formError.style.display = 'block';
+        return;
+      } else {
+        formError.style.display = 'none';
+        var iso = year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':00';
+        document.getElementById('dueDateTime').value = iso;
+        form.submit();
+      }
+    });
+  });
+</script>
+{% endblock %}
