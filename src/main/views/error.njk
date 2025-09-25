@@ -2,4 +2,24 @@
 
 {% block content %}
   <h1 class="govuk-heading-xl">Something went wrong</h1>
+  
+  {% if message %}
+    <p class="govuk-body">{{ message }}</p>
+  {% endif %}
+  
+  <p class="govuk-body">
+    <a href="/tasks" class="govuk-link">Go back to tasks</a> or 
+    <a href="/" class="govuk-link">return to home page</a>
+  </p>
+  
+  {% if error and error.stack %}
+    <details class="govuk-details">
+      <summary class="govuk-details__summary">
+        <span class="govuk-details__summary-text">Technical details</span>
+      </summary>
+      <div class="govuk-details__text">
+        <pre><code>{{ error.stack }}</code></pre>
+      </div>
+    </details>
+  {% endif %}
 {% endblock %}
