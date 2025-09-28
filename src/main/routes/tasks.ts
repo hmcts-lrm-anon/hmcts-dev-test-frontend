@@ -1,10 +1,11 @@
-import { Application, Request, Response, NextFunction } from 'express';
-import axios from 'axios';
-import { StatusCodes } from 'http-status-codes';
 import { HTTPError } from '../HttpError';
 
+import axios from 'axios';
+import { Application, NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+
 // Utility function to handle HTTP request errors consistently
-function handleHttpRequestError(error: any, fallbackMessage: string, next: NextFunction): void {
+function handleHttpRequestError(error: Error & { response?: { status: number; data?: { message?: string } }; code?: string }, fallbackMessage: string, next: NextFunction): void {
   
   if (error?.response?.status) {
     // Backend responded with an error status - use that status and message

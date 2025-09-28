@@ -37,6 +37,7 @@ glob
 setupDev(app, developmentMode);
 
 // error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: HTTPError, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.log(err);
   // set locals, only providing error in development
